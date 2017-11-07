@@ -12,6 +12,9 @@ public class KinectBodyView : MonoBehaviour
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private KinectBodyManager _BodyManager;
 
+    public const string LEFT_HAND_OBJ = "LeftHandObj";
+    public const string RIGHT_HAND_OBJ = "RightHandObj";
+
     private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
     {
         { Kinect.JointType.FootLeft, Kinect.JointType.AnkleLeft },
@@ -127,11 +130,37 @@ public class KinectBodyView : MonoBehaviour
             lr.material = BoneMaterial;
             lr.startWidth = 0.05f;
             lr.endWidth = 0.05f;
+            lr.GetComponent<Collider>().enabled = false;
 
             jointObj.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
             jointObj.name = jt.ToString();
+            jointObj.GetComponent<Collider>().enabled = false;
             jointObj.transform.parent = body.transform;
         }
+
+        GameObject leftHandObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        leftHandObj.transform.localScale = new Vector3(2f, 2f, 2f);
+        leftHandObj.name = LEFT_HAND_OBJ;
+        leftHandObj.GetComponent<Renderer>().material.color = Color.red;
+        //Destroy(leftHandObj.GetComponent<SphereCollider>());
+        //CircleCollider2D lcc = leftHandObj.AddComponent<CircleCollider2D>();
+        SphereCollider lcc = leftHandObj.GetComponent<SphereCollider>();
+        lcc.center = new Vector3(0f, 0f, 0f);
+        //lcc.offset = new Vector2(0f, 0f);
+        lcc.radius = 1f;
+        leftHandObj.transform.parent = body.transform;
+
+        GameObject rightHandObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        rightHandObj.transform.localScale = new Vector3(2f, 2f, 2f);
+        rightHandObj.name = RIGHT_HAND_OBJ;
+        rightHandObj.GetComponent<Renderer>().material.color = Color.blue;
+        //Destroy(rightHandObj.GetComponent<SphereCollider>());
+        //CircleCollider2D rcc = rightHandObj.AddComponent<CircleCollider2D>();
+        SphereCollider rcc = rightHandObj.GetComponent<SphereCollider>();
+        rcc.center = new Vector3(0f, 0f, 0f);
+        //rcc.offset = new Vector2(0f, 0f);
+        rcc.radius = 1f;
+        rightHandObj.transform.parent = body.transform;
 
         return body;
     }
@@ -190,26 +219,21 @@ public class KinectBodyView : MonoBehaviour
             {
                 case Kinect.JointType.HandTipLeft:
                     leftHandPosition = jointObj.localPosition;
+                    Transform leftHandObj = bodyObject.transform.Find(LEFT_HAND_OBJ);
+                    leftHandObj.localPosition = GetVector3FromJoint(sourceJoint);
                     break;
                 case Kinect.JointType.ShoulderLeft:
                     leftShoulderPosition = jointObj.localPosition;
                     break;
                 case Kinect.JointType.HandTipRight:
                     rightHandPosition = jointObj.localPosition;
+                    Transform rightHandObj = bodyObject.transform.Find(RIGHT_HAND_OBJ);
+                    rightHandObj.localPosition = GetVector3FromJoint(sourceJoint);
                     break;
                 case Kinect.JointType.ShoulderRight:
                     rightShoulderPosition = jointObj.localPosition;
                     break;
             }
-
-            /*
-             * For testing purposes
-            if (jt == Kinect.JointType.HandLeft)// || jt == Kinect.JointType.HandRight)
-            {
-                //Debug.Log("X: " + jointObj.localPosition.x + ", Y: " + jointObj.localPosition.y + ", Z: " + jointObj.localPosition.z);
-                jointObj.GetComponent<Renderer>().material.color = Color.red;
-            }
-            */
 
             //Draw line between joints
             LineRenderer lr = jointObj.GetComponent<LineRenderer>();
@@ -224,35 +248,23 @@ public class KinectBodyView : MonoBehaviour
                 lr.enabled = false;
             }
         }
-        //Prawdopodobnie trzeba tutaj sprawdzić znaki / oznaczenia z racji tego że nie pamiętam dokładnie 
-        //jak wygląda układ współrzędnych kinecta, przyjmuję, że [0,0,0] to pozycja kamery, 
-        //lewa ręka ma x współrzędną ujemną, góra to ujemna współrzędna y, z ignoruję
         double left = leftShoulderPosition.x - leftHandSize;
         double right = rightShoulderPosition.x + rightHandSize;
-        double top = Math.Min(leftShoulderPosition.y - leftHandSize, rightShoulderPosition.y - rightHandSize);
-        double bottom = Math.Max(leftShoulderPosition.y + leftHandSize, rightShoulderPosition.y + rightHandSize);
-        int gridSizeX = 5;
-        int gridSizeY = 5;
-        //Przesunięcie układu o wektor [left,top] 
+        double top = Math.Max(leftShoulderPosition.y + leftHandSize, rightShoulderPosition.y + rightHandSize);
+        double bottom = Math.Min(leftShoulderPosition.y - leftHandSize, rightShoulderPosition.y - rightHandSize);
+        //Przesunięcie układu o wektor [left,bottom] 
         leftHandPosition.x -= (float)left;
-        leftHandPosition.y -= (float)top;
+        leftHandPosition.y -= (float)bottom;
         rightHandPosition.x -= (float)left;
-        rightHandPosition.y -= (float)top;
+        rightHandPosition.y -= (float)bottom;
         right -= left;
-        bottom -= top;
+        top -= bottom;
         left = 0;
         top = 0;
-        //Obliczenie kwadratu w którym znajduje się dana ręka
-        int leftHandX = (int)Math.Floor(leftHandPosition.x * gridSizeX / right);
-        int leftHandY = (int)Math.Floor(leftHandPosition.y * gridSizeY / top);
-        int rightHandX = (int)Math.Floor(rightHandPosition.x * gridSizeX / right);
-        int rightHandY = (int)Math.Floor(rightHandPosition.y * gridSizeY / top);
-        //Przy okazji w right i bottom znajdują się rozmiary ekranu, przez co można to przeskalować na piksele:
+        //Przy okazji w right i top znajdują się rozmiary ekranu, przez co można to przeskalować na piksele:
         //x_pos_in_px = x_pos_in_kinect / right * x_size_of_screen_in_px;
         //y_pos_in_px = y_pos_in_kinect / top * y_size_of_screen_in_px;
         //Zostaje jeszcze kwestia proporcji ekranu, ale to już do późniejszej dyskusji zostawiam :-)
-
-        Debug.Log("Left hand position: [" + leftHandX + ", " + leftHandY + "], Right hand position: [" + rightHandX + ", " + rightHandY + "]");
     }
 
     private static Color GetColorForState(Kinect.TrackingState state)
@@ -272,6 +284,6 @@ public class KinectBodyView : MonoBehaviour
 
     private static Vector3 GetVector3FromJoint(Kinect.Joint joint)
     {
-        return new Vector3(joint.Position.X * 10, joint.Position.Y * 10, joint.Position.Z * 10);
+        return new Vector3(joint.Position.X * 10, joint.Position.Y * 10, 0);// joint.Position.Z * 10);
     }
 }
