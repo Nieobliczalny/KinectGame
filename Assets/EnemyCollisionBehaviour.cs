@@ -5,6 +5,7 @@ using UnityEngine;
 public class EnemyCollisionBehaviour : MonoBehaviour {
 
     public PlayerHealth playerHealth;
+    public PlayerScore playerScore;
     public bool enableMovement;
     private Vector3 initialPosition;
     private float velocity;
@@ -13,11 +14,13 @@ public class EnemyCollisionBehaviour : MonoBehaviour {
         if (col.gameObject.name == "LeftHandObj" || col.gameObject.name == "RightHandObj")
         {
             Destroy(gameObject);
+            playerScore.AddScore();
         }
         if (col.gameObject.name == "Base")
         {
             Destroy(gameObject);
             playerHealth.ReduceHealth();
+            playerScore.ResetCombo();
         }
     }
 
