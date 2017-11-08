@@ -147,7 +147,9 @@ public class KinectBodyView : MonoBehaviour
         SphereCollider lcc = leftHandObj.GetComponent<SphereCollider>();
         lcc.center = new Vector3(0f, 0f, 0f);
         //lcc.offset = new Vector2(0f, 0f);
-        lcc.radius = 1f;
+        lcc.radius = 0.5f;
+        Rigidbody gameObjectsRigidBodyL = leftHandObj.AddComponent<Rigidbody>(); // Add the rigidbody.
+        gameObjectsRigidBodyL.mass = 5; // Set the GO's mass to 5 via the Rigidbody.
         leftHandObj.transform.parent = body.transform;
 
         GameObject rightHandObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -159,7 +161,9 @@ public class KinectBodyView : MonoBehaviour
         SphereCollider rcc = rightHandObj.GetComponent<SphereCollider>();
         rcc.center = new Vector3(0f, 0f, 0f);
         //rcc.offset = new Vector2(0f, 0f);
-        rcc.radius = 1f;
+        rcc.radius = 0.5f;
+        Rigidbody gameObjectsRigidBodyR = rightHandObj.AddComponent<Rigidbody>(); // Add the rigidbody.
+        gameObjectsRigidBodyR.mass = 5; // Set the GO's mass to 5 via the Rigidbody.
         rightHandObj.transform.parent = body.transform;
 
         return body;
@@ -221,6 +225,7 @@ public class KinectBodyView : MonoBehaviour
                     leftHandPosition = jointObj.localPosition;
                     Transform leftHandObj = bodyObject.transform.Find(LEFT_HAND_OBJ);
                     leftHandObj.localPosition = GetVector3FromJoint(sourceJoint);
+                    Debug.Log("Left hand: " + leftHandObj.position.x + " " + leftHandObj.position.y + " " + leftHandObj.position.z);
                     break;
                 case Kinect.JointType.ShoulderLeft:
                     leftShoulderPosition = jointObj.localPosition;
@@ -228,7 +233,8 @@ public class KinectBodyView : MonoBehaviour
                 case Kinect.JointType.HandTipRight:
                     rightHandPosition = jointObj.localPosition;
                     Transform rightHandObj = bodyObject.transform.Find(RIGHT_HAND_OBJ);
-                    rightHandObj.localPosition = GetVector3FromJoint(sourceJoint);
+                    rightHandObj.position = GetVector3FromJoint(sourceJoint);
+                    Debug.Log("Right hand: " + rightHandObj.position.x + " " + rightHandObj.position.y + " " + rightHandObj.position.z);
                     break;
                 case Kinect.JointType.ShoulderRight:
                     rightShoulderPosition = jointObj.localPosition;
