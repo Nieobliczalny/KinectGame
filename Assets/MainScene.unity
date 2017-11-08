@@ -1276,10 +1276,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemy: {fileID: 973667733}
-  spawnTime: 3
+  spawnTime: 2
   spawnPoints:
   - {fileID: 721793080}
   - {fileID: 877597671}
+  - {fileID: 1268862561}
+  - {fileID: 1140728434}
+  - {fileID: 1176759246}
+  - {fileID: 69371615}
+  - {fileID: 1183435726}
+  - {fileID: 433291634}
+  - {fileID: 1911977642}
+  - {fileID: 277499007}
+  - {fileID: 1130597595}
+  - {fileID: 368030787}
   playerHealth: {fileID: 1631121327}
 --- !u!4 &1662257834
 Transform:
